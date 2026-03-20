@@ -1,0 +1,484 @@
+# 단위환산기 구현 계획
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 드롭다운 기반 단위환산기를 단일 index.html 파일로 구현한다.
+
+**Architecture:** 단일 HTML 파일에 CSS와 JavaScript를 인라인으로 포함. 변환 데이터는 JS 객체로 정의하고, DOM 이벤트로 UI를 제어한다. 온도는 공식 기반, 나머지는 비율 기반 변환.
+
+**Tech Stack:** HTML5, CSS3, Vanilla JavaScript
+
+**Spec:** `docs/PRD.md`
+
+---
+
+## 파일 구조
+
+- Create: `index.html` — 전체 앱 (HTML 마크업 + `<style>` + `<script>`)
+
+단일 파일이므로 태스크별로 HTML/CSS/JS 섹션을 순차적으로 구축한다.
+
+---
+
+### Task 1: HTML 마크업 작성
+
+**Files:**
+- Create: `index.html`
+
+- [ ] **Step 1: 기본 HTML 구조 작성**
+
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>단위환산기</title>
+  <style>
+    /* Task 2에서 작성 */
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>단위환산기</h1>
+
+    <div class="form-group">
+      <label for="category">카테고리</label>
+      <select id="category">
+        <option value="length">길이</option>
+        <option value="weight">무게</option>
+        <option value="temperature">온도</option>
+        <option value="volume">부피</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="inputValue">값</label>
+      <input type="number" id="inputValue" placeholder="숫자를 입력하세요">
+    </div>
+
+    <div class="unit-row">
+      <div class="form-group">
+        <label for="fromUnit">변환 전</label>
+        <select id="fromUnit"></select>
+      </div>
+
+      <button id="swapBtn" type="button" title="단위 교환">↔</button>
+
+      <div class="form-group">
+        <label for="toUnit">변환 후</label>
+        <select id="toUnit"></select>
+      </div>
+    </div>
+
+    <button id="convertBtn" type="button">변환</button>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    // Task 3에서 작성
+  </script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: 브라우저에서 열어 마크업 확인**
+
+Run: 브라우저에서 `index.html` 열기
+Expected: 카테고리 드롭다운, 입력 필드, 빈 단위 드롭다운 2개, 스왑/변환 버튼, 결과 영역이 보인다.
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add index.html
+git commit -m "feat: add HTML markup for unit converter"
+```
+
+---
+
+### Task 2: CSS 스타일 작성
+
+**Files:**
+- Modify: `index.html` — `<style>` 섹션
+
+- [ ] **Step 1: 스타일 작성**
+
+`index.html`의 `<style>` 태그 안에 다음 CSS를 작성:
+
+```css
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  width: 100%;
+  max-width: 480px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+  color: #555;
+  font-weight: 500;
+}
+
+select, input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  color: #333;
+}
+
+select:focus, input:focus {
+  outline: none;
+  border-color: #4a90d9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
+}
+
+.unit-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.unit-row .form-group {
+  flex: 1;
+}
+
+#swapBtn {
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-bottom: 16px;
+  color: #555;
+}
+
+#swapBtn:hover {
+  background: #f0f0f0;
+}
+
+#convertBtn {
+  width: 100%;
+  padding: 12px;
+  background: #4a90d9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+#convertBtn:hover {
+  background: #3a7bc8;
+}
+
+.result {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f0f7ff;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #333;
+  display: none;
+}
+
+.result.visible {
+  display: block;
+}
+
+.result.error {
+  background: #fff0f0;
+  color: #d32f2f;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 20px;
+  }
+
+  .unit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #swapBtn {
+    align-self: center;
+    margin-bottom: 0;
+  }
+}
+```
+
+- [ ] **Step 2: 브라우저에서 스타일 확인**
+
+Run: 브라우저에서 `index.html` 새로고침
+Expected: 중앙 정렬 카드, 깔끔한 폼 요소, 반응형 대응 확인. 모바일 뷰포트에서 unit-row가 세로 배치.
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add index.html
+git commit -m "feat: add CSS styles for unit converter"
+```
+
+---
+
+### Task 3: 변환 데이터 및 핵심 로직 작성
+
+**Files:**
+- Modify: `index.html` — `<script>` 섹션
+
+- [ ] **Step 1: 단위 데이터 객체 작성**
+
+`<script>` 태그 안에 다음 코드 작성:
+
+```javascript
+const unitData = {
+  length: {
+    name: '길이',
+    units: {
+      km: { label: 'km (킬로미터)', ratio: 1000 },
+      m: { label: 'm (미터)', ratio: 1 },
+      cm: { label: 'cm (센티미터)', ratio: 0.01 },
+      mm: { label: 'mm (밀리미터)', ratio: 0.001 },
+      inch: { label: 'inch (인치)', ratio: 0.0254 },
+      feet: { label: 'feet (피트)', ratio: 0.3048 },
+      yard: { label: 'yard (야드)', ratio: 0.9144 },
+      mile: { label: 'mile (마일)', ratio: 1609.344 },
+    },
+  },
+  weight: {
+    name: '무게',
+    units: {
+      kg: { label: 'kg (킬로그램)', ratio: 1 },
+      g: { label: 'g (그램)', ratio: 0.001 },
+      mg: { label: 'mg (밀리그램)', ratio: 0.000001 },
+      lb: { label: 'lb (파운드)', ratio: 0.453592 },
+      oz: { label: 'oz (온스)', ratio: 0.0283495 },
+      ton: { label: 'ton (톤)', ratio: 1000 },
+    },
+  },
+  temperature: {
+    name: '온도',
+    units: {
+      celsius: { label: '°C (섭씨)' },
+      fahrenheit: { label: '°F (화씨)' },
+      kelvin: { label: 'K (켈빈)' },
+    },
+  },
+  volume: {
+    name: '부피',
+    units: {
+      L: { label: 'L (리터)', ratio: 1 },
+      mL: { label: 'mL (밀리리터)', ratio: 0.001 },
+      gallon: { label: 'gallon (갤런)', ratio: 3.78541 },
+      quart: { label: 'quart (쿼트)', ratio: 0.946353 },
+      pint: { label: 'pint (파인트)', ratio: 0.473176 },
+      cup: { label: 'cup (컵)', ratio: 0.236588 },
+    },
+  },
+};
+```
+
+- [ ] **Step 2: 변환 함수 작성**
+
+데이터 객체 아래에 추가:
+
+```javascript
+function convertTemperature(value, from, to) {
+  if (from === to) return value;
+
+  // 먼저 섭씨로 변환
+  let celsius;
+  if (from === 'celsius') celsius = value;
+  else if (from === 'fahrenheit') celsius = (value - 32) * 5 / 9;
+  else celsius = value - 273.15; // kelvin
+
+  // 섭씨에서 목표 단위로 변환
+  if (to === 'celsius') return celsius;
+  if (to === 'fahrenheit') return celsius * 9 / 5 + 32;
+  return celsius + 273.15; // kelvin
+}
+
+function convert(category, value, from, to) {
+  if (from === to) return value;
+
+  if (category === 'temperature') {
+    return convertTemperature(value, from, to);
+  }
+
+  const units = unitData[category].units;
+  return value * units[from].ratio / units[to].ratio;
+}
+
+function formatResult(value) {
+  return parseFloat(value.toPrecision(6)).toString();
+}
+```
+
+- [ ] **Step 3: 콘솔에서 변환 로직 검증**
+
+브라우저 콘솔에서 테스트:
+
+```
+convert('length', 1, 'km', 'm')        → 1000
+convert('length', 1, 'mile', 'km')     → 1.60934
+convert('weight', 1, 'kg', 'lb')       → 2.20462
+convert('temperature', 100, 'celsius', 'fahrenheit') → 212
+convert('temperature', 0, 'celsius', 'kelvin')       → 273.15
+convert('volume', 1, 'gallon', 'L')    → 3.78541
+```
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add index.html
+git commit -m "feat: add unit data and conversion logic"
+```
+
+---
+
+### Task 4: DOM 이벤트 및 UI 동작 연결
+
+**Files:**
+- Modify: `index.html` — `<script>` 섹션
+
+- [ ] **Step 1: DOM 요소 참조 및 드롭다운 갱신 함수 작성**
+
+변환 함수 아래에 추가:
+
+```javascript
+const categorySelect = document.getElementById('category');
+const fromUnitSelect = document.getElementById('fromUnit');
+const toUnitSelect = document.getElementById('toUnit');
+const inputValue = document.getElementById('inputValue');
+const convertBtn = document.getElementById('convertBtn');
+const swapBtn = document.getElementById('swapBtn');
+const resultDiv = document.getElementById('result');
+
+function updateUnitDropdowns() {
+  const category = categorySelect.value;
+  const units = unitData[category].units;
+
+  fromUnitSelect.innerHTML = '';
+  toUnitSelect.innerHTML = '';
+
+  const keys = Object.keys(units);
+  keys.forEach((key) => {
+    fromUnitSelect.appendChild(new Option(units[key].label, key));
+    toUnitSelect.appendChild(new Option(units[key].label, key));
+  });
+
+  // 변환 후 단위를 두 번째 항목으로 기본 선택
+  if (keys.length > 1) {
+    toUnitSelect.value = keys[1];
+  }
+
+  resultDiv.classList.remove('visible', 'error');
+}
+```
+
+- [ ] **Step 2: 변환 실행 함수 작성**
+
+```javascript
+function executeConversion() {
+  const raw = inputValue.value.trim();
+
+  if (raw === '') {
+    resultDiv.textContent = '숫자를 입력해주세요.';
+    resultDiv.classList.add('visible', 'error');
+    return;
+  }
+
+  const num = Number(raw);
+  if (isNaN(num)) {
+    resultDiv.textContent = '유효한 숫자를 입력해주세요.';
+    resultDiv.classList.add('visible', 'error');
+    return;
+  }
+
+  const category = categorySelect.value;
+  const from = fromUnitSelect.value;
+  const to = toUnitSelect.value;
+  const result = convert(category, num, from, to);
+  const fromLabel = unitData[category].units[from].label;
+  const toLabel = unitData[category].units[to].label;
+
+  resultDiv.textContent = `${raw} ${fromLabel} = ${formatResult(result)} ${toLabel}`;
+  resultDiv.classList.remove('error');
+  resultDiv.classList.add('visible');
+}
+```
+
+- [ ] **Step 3: 이벤트 리스너 등록**
+
+```javascript
+categorySelect.addEventListener('change', updateUnitDropdowns);
+convertBtn.addEventListener('click', executeConversion);
+
+swapBtn.addEventListener('click', () => {
+  const temp = fromUnitSelect.value;
+  fromUnitSelect.value = toUnitSelect.value;
+  toUnitSelect.value = temp;
+
+  if (inputValue.value.trim() !== '') {
+    executeConversion();
+  }
+});
+
+// 초기화
+updateUnitDropdowns();
+```
+
+- [ ] **Step 4: 브라우저에서 전체 기능 테스트**
+
+확인 항목:
+1. 카테고리 변경 시 단위 드롭다운 갱신
+2. 값 입력 → 변환 버튼 클릭 → 결과 표시
+3. 스왑 버튼 클릭 → 단위 교환 + 자동 재변환
+4. 빈 입력 / 비숫자 입력 → 에러 메시지
+5. 모바일 뷰포트에서 레이아웃 확인
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add index.html
+git commit -m "feat: add DOM events and complete unit converter"
+```
